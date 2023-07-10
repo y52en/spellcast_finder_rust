@@ -1,6 +1,9 @@
 # Spellcast Solver in Rust
 ![screenshot.png](screenshot.png)
 
+## Downloads
+[Downloads](https://github.com/y52en/spellcast_finder_rust/releases/latest)
+
 ## Features
 - [x] Capable of searching up to 3 swaps
 - [x] Supports multithreading
