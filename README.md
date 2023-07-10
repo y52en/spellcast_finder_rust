@@ -27,6 +27,7 @@ x c v b n
 You'll need to have the following installed to build and run the application:
 - Rust
 - Node.js  
+
 Please note that you may need to install some dependencies for Tauri. For details, please refer to the following issue thread: https://github.com/tauri-apps/tauri/issues/3701
 
 ## Building the Application
