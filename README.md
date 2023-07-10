@@ -20,7 +20,7 @@ x c v b n
 
 - MacBook Air 8GB (M1, 2020)
   - 2.43sec
-- Windows 10 8GB (i7-8550U, WSL2)
+- Windows 11 8GB (i7-8550U, WSL2)
   - 5.03sec
 
 ## requirements
