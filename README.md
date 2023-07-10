@@ -34,3 +34,6 @@ x c v b n
 npm install
 npm run tauri build
 ```
+
+## credits
+[dictionary : https://github.com/jacksonrayhamilton/wordlist-english](https://github.com/jacksonrayhamilton/wordlist-english)
