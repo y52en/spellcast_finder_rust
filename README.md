@@ -1,14 +1,14 @@
-# spellcast_finder_rust
+# Spellcast Solver in Rust
 ![screenshot.png](screenshot.png)
 
-## features
+## Features
 - [x] Capable of searching up to 3 swaps
 - [x] Supports multithreading
 - [x] Dirty code
 - [x] Bare minimum, user-unfriendly interface
 - [x] Meaningless commit log
 
-## speed
+## Performance
 input
 ```
 q w e r t 
@@ -23,13 +23,13 @@ x c v b n
 - Windows 11 8GB (i7-8550U, WSL2)
   - 5.03sec
 
-## requirements
-- rust
-- Node.js
-- perhaps you need to install some dependencies for tauri
-  - see https://github.com/tauri-apps/tauri/issues/3701
+## Requirements
+You'll need to have the following installed to build and run the application:
+- Rust
+- Node.js  
+Please note that you may need to install some dependencies for Tauri. For details, please refer to the following issue thread: https://github.com/tauri-apps/tauri/issues/3701
 
-## building
+## Building the Application
 ```bash
 npm install
 npm run tauri build
