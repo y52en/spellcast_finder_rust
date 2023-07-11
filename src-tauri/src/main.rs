@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering, AtomicU8};
 use std::sync::mpsc::{channel, Sender};
 use std::time::Instant;
 
@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn exec(input: &str) -> String {
+fn exec(input: &str, swap: u8) -> String {
+    CAN_USE_SWAP.store(swap, Ordering::Relaxed);
     let start = Instant::now();
 
     let (sender, receiver) = channel::<(History, HistoryChar)>();
@@ -41,11 +42,11 @@ fn exec(input: &str) -> String {
                     &word_dic.inner[&key],
                     &sender,
                     &sender_swap,
-                    CAN_USE_SWAP,
+                    get_can_use_swap(),
                     &mut result_string,
                 );
 
-                if CAN_USE_SWAP >= 1 {
+                if get_can_use_swap() >= 1 {
                     for (chr, t_hash) in &word_dic.inner {
                         if key == *chr {
                             continue;
@@ -59,7 +60,7 @@ fn exec(input: &str) -> String {
                             t_hash,
                             &sender,
                             &sender_swap,
-                            CAN_USE_SWAP - 1,
+                            get_can_use_swap() - 1,
                             &mut result_string,
                         );
                     }
@@ -74,12 +75,12 @@ fn exec(input: &str) -> String {
 
     let mut remain = TABLE_SIZE * TABLE_SIZE;
     let mut max_score = 0;
-    let mut max_score_swap = [0; CAN_USE_SWAP as usize];
+    let mut max_score_swap = [0; 3 as usize];
 
     let mut max_score_bak: (History, HistoryChar) = (History::new(), HistoryChar::new());
     // History, String, String_SwapBefore
     let mut max_score_swap_bak: Vec<(History, String, String)> =
-        vec![(History::new(), String::new(), String::new()); CAN_USE_SWAP as usize];
+        vec![(History::new(), String::new(), String::new()); 3 as usize];
 
     let mut end_flag = false;
     loop {
@@ -169,7 +170,7 @@ fn exec(input: &str) -> String {
 
     println_override!("");
     println_override!("result swap:---------------------");
-    for swap_use in 0..CAN_USE_SWAP {
+    for swap_use in 0..get_can_use_swap() {
         let swap_use_index = swap_use as usize;
         let max_score_swap_bak = &max_score_swap_bak[swap_use_index];
         let max_score_swap = max_score_swap[swap_use_index];
@@ -217,8 +218,8 @@ fn main() {
 const EMPTY: char = '_';
 const WORD_EOF: char = '@';
 const HISTORY_SIZE: usize = 25;
-const CAN_USE_SWAP: u8 = 3;
 
+static CAN_USE_SWAP: AtomicU8 = AtomicU8::new(3);
 static DIAMOND_MODE: AtomicBool = AtomicBool::new(false);
 static DIAMOND_POINT: AtomicI32 = AtomicI32::new(1);
 
@@ -228,6 +229,10 @@ fn get_diamond_point() -> i32 {
 
 fn get_is_diamond_mode() -> bool {
     DIAMOND_MODE.load(Ordering::Relaxed)
+}
+
+fn get_can_use_swap() -> u8 {
+    CAN_USE_SWAP.load(Ordering::Relaxed)
 }
 
 #[rustfmt::skip]
@@ -412,7 +417,7 @@ fn search(
         .collect::<String>();
     // has word (@を使うのはchar型の都合上)
     if word_tree.inner.contains_key(&WORD_EOF) {
-        if remain_swap == CAN_USE_SWAP {
+        if remain_swap == get_can_use_swap() {
             sender
                 .send((history_.clone(), history_char.clone()))
                 .unwrap();
@@ -422,7 +427,7 @@ fn search(
                     history_.clone(),
                     english_word.clone(),
                     result_string.clone(),
-                    CAN_USE_SWAP - remain_swap,
+                    get_can_use_swap() - remain_swap,
                 ))
                 .unwrap();
         }

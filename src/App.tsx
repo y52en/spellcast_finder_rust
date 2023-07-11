@@ -26,6 +26,7 @@ const Main = () => {
   );
   const [log, setLog] = useState<string>("");
   const [focusIndex, setFocusIndex] = useState<number>(-1);
+  const [maxSwap, setMaxSwap] = useState<number | "">(3);
 
   const inputsToString = () => {
     const input = inputs.map((x) =>
@@ -173,6 +174,7 @@ const Main = () => {
               try {
                 log = (await invoke("exec", {
                   input: inputsToString(),
+                  swap: maxSwap === "" ? 2 : maxSwap,
                 })) as string;
               } catch (e) {
                 showErrorMessage("Error!!!");
@@ -188,6 +190,26 @@ const Main = () => {
           <button style={{ textAlign: "center" }} onClick={reset}>
             Reset
           </button>
+          <div style={{ paddingLeft: "7px", paddingRight: "7px" }}>
+            <div>Max Swap</div>
+            <input
+              type="tel"
+              style={{
+                width: "10px",
+                textAlign: "center",
+              }}
+              maxLength={1}
+              value={maxSwap}
+              onKeyDown={(e) => {
+                if (e.key === "Backspace") {
+                  setMaxSwap("");
+                } else if (e.key.match(/^[0-9]$/)) {
+                  setMaxSwap(parseInt(e.key));
+                }
+                e.preventDefault();
+              }}
+            />
+          </div>
           <div></div>
           <div>
             0 : 2x <br />
