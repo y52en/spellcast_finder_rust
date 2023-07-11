@@ -1,6 +1,10 @@
 # Spellcast Solver in Rust
 ![screenshot.png](screenshot.png)
 
+## Sample
+[Browser Version](https://y52en.github.io/spellcast_finder_rust/)  
+Please be advised that showing the results may take some time, and is limited to a maximum of 2 swaps.
+
 ## Downloads
 [Downloads](https://github.com/y52en/spellcast_finder_rust/releases/latest)
 
@@ -40,4 +44,4 @@ npm run tauri build
 ```
 
 ## credits
-[dictionary : https://github.com/jacksonrayhamilton/wordlist-english](https://github.com/jacksonrayhamilton/wordlist-english)
+Dictionary Source : [https://github.com/jacksonrayhamilton/wordlist-english](https://github.com/jacksonrayhamilton/wordlist-english)
