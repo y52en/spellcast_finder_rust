@@ -1,6 +1,6 @@
 [package]
 name = "spellcast_finder_rust"
-version = "0.0.1"
+version = "0.0.2"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
