@@ -1,10 +1,23 @@
 import { useState, useEffect, cloneElement, ReactElement, useRef } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import styled from "styled-components";
 import "./App.css";
+
+const code_font_family =
+  "Operator Mono,Source Code Pro,Menlo,Monaco,Consolas,Courier New,monospace";
 
 function App() {
   return <Main />;
 }
+
+const StyledDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: 770px) {
+    flex-direction: row;
+  }
+`;
 
 const Main = () => {
   const totalCells = 25;
@@ -98,12 +111,14 @@ const Main = () => {
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "row" }}>
+      <StyledDiv>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(5, 1fr)",
-            height: "200px",
+            height: "350px",
+            width: "400px",
+            marginBottom: "10px",
           }}
         >
           {new Array(totalCells).fill(null).map((_, i) => {
@@ -119,8 +134,7 @@ const Main = () => {
                   width: "30px",
                   height: "20px",
                   margin: "5px",
-                  fontFamily:
-                    "Operator Mono,Source Code Pro,Menlo,Monaco,Consolas,Courier New,monospace",
+                  fontFamily: code_font_family,
                 }}
                 maxLength={3}
               />
@@ -145,7 +159,7 @@ const Main = () => {
             return elm;
           })}
           <button
-            style={{ width: "80px", textAlign: "center",padding:"5px" }}
+            style={{ width: "80px", textAlign: "center", padding: "5px" }}
             onClick={async (self) => {
               if (inputs.some((x) => !x.match(/[a-zA-Z]/))) {
                 showErrorMessage("Invalid input!!!");
@@ -182,15 +196,15 @@ const Main = () => {
             3 : TL <br />
           </div>
         </div>
-        <div style={{ marginLeft: "10px" }}>
-          <code>
+        <div style={{ marginLeft: "10px", width: "350px" }}>
+          <code style={{ fontFamily: code_font_family }}>
             {log.split("\n").map((x, i) => (
               <div key={i}>{x}</div>
             ))}
           </code>
         </div>
         <br />
-      </div>
+      </StyledDiv>
     </>
   );
 };
