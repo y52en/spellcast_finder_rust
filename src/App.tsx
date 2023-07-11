@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, cloneElement, ReactElement, useRef } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 
@@ -12,9 +12,17 @@ const Main = () => {
     new Array(totalCells).fill("")
   );
   const [log, setLog] = useState<string>("");
+  const [focusIndex, setFocusIndex] = useState<number>(-1);
 
   const inputsToString = () => {
-    const input = inputs.map((x) => x.split("").sort().reverse().join(""));
+    const input = inputs.map((x) =>
+      x
+        .split("")
+        .sort()
+        .reverse()
+        .map((x) => x.toLowerCase())
+        .join("")
+    );
     let out = "";
     for (let i = 0; i < 5; i++) {
       for (let j = 0; j < 5; j++) {
@@ -33,6 +41,7 @@ const Main = () => {
     const newInputs = [...inputs];
     newInputs[index] = e.target.value;
     setInputs(newInputs);
+    setFocusIndex(index);
   };
 
   const handleKeyDown = (e: any, index: number) => {
@@ -41,9 +50,21 @@ const Main = () => {
         document.getElementById(`cell-${index - 1}`)?.focus();
       } else {
         const newInputs = [...inputs];
-        newInputs[index] = newInputs[index].slice(0, -1);
+        // newInputs[index] = newInputs[index].slice(0, -1);
         setInputs(newInputs);
       }
+    } else if (e.key === "ArrowLeft") {
+      if (index > 0) {
+        document.getElementById(`cell-${index - 1}`)?.focus();
+      }
+      e.preventDefault();
+      setFocusIndex(index - 1);
+    } else if (e.key === "ArrowRight") {
+      if (index < totalCells - 1) {
+        document.getElementById(`cell-${index + 1}`)?.focus();
+      }
+      e.preventDefault();
+      setFocusIndex(index + 1);
     }
   };
 
@@ -60,8 +81,20 @@ const Main = () => {
         }
       }
       document.getElementById(`cell-${nextEmptyCellIndex}`)?.focus();
+      setFocusIndex(nextEmptyCellIndex);
     }
   }, [inputs]);
+
+  useEffect(() => {
+    document.getElementById(`cell-${focusIndex}`)?.focus();
+  });
+
+  const showErrorMessage = (text: string) => {
+    setLog(text);
+    setTimeout(() => {
+      setLog("");
+    }, 1000);
+  };
 
   return (
     <>
@@ -73,46 +106,78 @@ const Main = () => {
             height: "200px",
           }}
         >
-          {new Array(totalCells).fill(null).map((_, i) => (
-            <input
-              id={`cell-${i}`}
-              key={i}
-              value={inputs[i]}
-              onChange={(e) => handleInputChange(e, i)}
-              onKeyDown={(e) => handleKeyDown(e, i)}
-              style={{
-                width: "30px",
-                height: "20px",
-                margin: "5px",
-                fontFamily:
-                  "Operator Mono,Source Code Pro,Menlo,Monaco,Consolas,Courier New,monospace",
-              }}
-              maxLength={3}
-            />
-          ))}
+          {new Array(totalCells).fill(null).map((_, i) => {
+            let elm = (
+              <input
+                id={`cell-${i}`}
+                key={i}
+                value={inputs[i]}
+                onChange={(e) => handleInputChange(e, i)}
+                onKeyDown={(e) => handleKeyDown(e, i)}
+                onClick={() => setFocusIndex(i)}
+                style={{
+                  width: "30px",
+                  height: "20px",
+                  margin: "5px",
+                  fontFamily:
+                    "Operator Mono,Source Code Pro,Menlo,Monaco,Consolas,Courier New,monospace",
+                }}
+                maxLength={3}
+              />
+            );
+            const input = inputs[i];
+            (
+              [
+                ["0", "2x", "#F000F0", ["0px", "0px"]],
+                ["1", "💎", "#F000F0", ["30px", "65px"]],
+                ["2", "DL", "yellow", ["0px", "70px"]],
+                ["3", "TL", "red", ["0px", "70px"]],
+              ] as [string, string, string, [string, string]][]
+            ).forEach(([key, value, color, pos]) => {
+              if (input.includes(key)) {
+                elm = (
+                  <Badge badgeText={value} position={pos} color={color}>
+                    {elm}
+                  </Badge>
+                );
+              }
+            });
+            return elm;
+          })}
           <button
-            onClick={async () => {
-              if (inputs.some((x) => !x.match(/[a-z]/))) {
-                setLog("Invalid input!!!");
-                setTimeout(() => {
-                  setLog("");
-                }, 1000);
+            style={{ width: "80px", textAlign: "center",padding:"5px" }}
+            onClick={async (self) => {
+              if (inputs.some((x) => !x.match(/[a-zA-Z]/))) {
+                showErrorMessage("Invalid input!!!");
                 return;
               }
-              const log = (await invoke("exec", {
-                input: inputsToString(),
-              })) as string;
-              console.log(log);
+              if (!(self.target instanceof HTMLButtonElement)) {
+                return;
+              }
+              self.target.textContent = "Solving...";
+              let log = "";
+              try {
+                log = (await invoke("exec", {
+                  input: inputsToString(),
+                })) as string;
+              } catch (e) {
+                showErrorMessage("Error!!!");
+                self.target.textContent = "Solve";
+                return;
+              }
               setLog(log);
+              self.target.textContent = "Solve";
             }}
           >
             Solve
           </button>
-          <button onClick={reset}>Reset</button>
+          <button style={{ textAlign: "center" }} onClick={reset}>
+            Reset
+          </button>
           <div></div>
           <div>
             0 : 2x <br />
-            1 : diamond <br />
+            1 : 💎 <br />
             2 : DL <br />
             3 : TL <br />
           </div>
@@ -129,5 +194,46 @@ const Main = () => {
     </>
   );
 };
+
+function Badge({
+  children,
+  badgeText,
+  position,
+  color,
+}: {
+  children: ReactElement;
+  badgeText: string;
+  position: [string, string];
+  color: string;
+}) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "inline-block",
+      }}
+    >
+      {children}
+      <span
+        style={{
+          position: "absolute",
+          top: position[0],
+          right: position[1],
+          backgroundColor: "#111",
+          color: "white",
+          borderRadius: "50%",
+          padding: "1px 2px",
+          fontSize: "10px",
+          lineHeight: "14px",
+          borderColor: color,
+          borderWidth: "2px",
+          borderStyle: "solid",
+        }}
+      >
+        {badgeText}
+      </span>
+    </div>
+  );
+}
 
 export default App;
